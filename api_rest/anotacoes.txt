@@ -1,0 +1,97 @@
+"""
+@api_view(["GET"])
+def get_users(request): #Esse aqui é o metodo que devolve todos os usuarios.
+
+    if request.method == "GET":
+        users = User.objects.all()
+        serializer = UserSerializer(users, many=True)
+        return Response(serializer.data)
+    
+    return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["GET", "PUT"])
+def getByNick(request, nick):
+    try:
+        user = User.objects.get(pk=nick)
+    except:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    
+    if request.method == "GET":
+        serializer = UserSerializer(user) #Aqui ele retorna um obj único
+        return Response(serializer.data)
+    
+    if request.method == "PUT":
+        serializer = UserSerializer(user, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+        
+        return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+#CRUDZAO DA MASSA
+@api_view(["GET","POST","PUT","DELETE"])
+def userManager(request): #Isso aqui é um GET de users
+    if request.method == "GET":
+        try:
+            if request.GET.get("user"): #Verifica se o user passou um nickname
+
+                user_nickname = request.GET['user']
+
+                try:
+                    user = User.objects.get(pk=user_nickname) #Pega o objeto na database
+                except:
+                    return Response(status=status.HTTP_404_NOT_FOUND)
+                
+                serializer = UserSerializer(user)
+                return Response(serializer.data)
+            
+            else:
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+        except:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        
+            # http://127.0.0.1:8000/api/data/?user=LG
+
+# Aqui nós vamos usar o POST
+    if request.method == "POST":
+         new_user = request.data #Isso aqui é a gente criando  o new_user
+         serializer = UserSerializer(data=new_user)
+
+         if serializer.is_valid():
+             serializer.save() #Se o serializer for valido ele vai salvar o item todo
+             return Response(serializer.data, status=status.HTTP_201_CREATED) #Retorna o objeto e o 201
+         
+         return Response(status=status.HTTP_400_BAD_REQUEST) #Se der ruim ele retorna o erro
+    
+# Aqui nós vamos editar um usuario
+    if request.method == "PUT":
+        nickname = request.data['user_nickname'] #Vamos precisar da PK para editar o user pela requisição
+        try:
+            updated_user = User.objects.get(pk=nickname)
+        except: 
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+        print(request.data)
+
+        serializer = UserSerializer(updated_user, data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+    
+# Aqui nós vamos DELETAR um user
+    
+    if request.method == "DELETE":
+        nickname = request.data['user_nickname']
+        try:
+            user_to_delete = User.objects.get(pk=nickname)
+            user_to_delete.delete()
+            return Response(status=status.HTTP_202_ACCEPTED)
+        except:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+"""
