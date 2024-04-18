@@ -139,6 +139,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 CORS_ALLOW_ORIGINS = [
-    "http://localhost:8080", #Trocar isso para a URL certa
+    "https://backendapptask.onrender.com", #Trocar isso para a URL certa
 ]
 
